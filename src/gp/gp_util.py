@@ -10,8 +10,8 @@ from gp.gp_interface import DragonflyGPFitter, DragonflyGP
 
 # Check if running python 3, if so import gpython
 import sys
-if sys.version_info[0] == 3:
-    from gp.gpytorch_interface import PytorchGP, PytorchGPFitter
+# if sys.version_info[0] == 3:
+#    from gp.gpytorch_interface import PytorchGP, PytorchGPFitter
 
 def get_gp_fitter(gp_engine, x_data, y_data, options):
     """Get GP Fitter wrapper.
