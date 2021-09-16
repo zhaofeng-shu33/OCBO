@@ -6,7 +6,7 @@ from argparse import Namespace
 import numpy as np
 from scipy.stats import norm as normal_distro
 
-from cstrats.cts_opt import ContinuousOpt
+from OCBO.cstrats.cts_opt import ContinuousOpt
 from dragonfly.utils.option_handler import get_option_specs
 from OCBO.util.misc_util import sample_grid, uniform_draw, knowledge_gradient
 

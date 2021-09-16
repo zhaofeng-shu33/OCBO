@@ -10,7 +10,7 @@ import numpy as np
 
 from dragonfly.gp.euclidean_gp import EuclideanGPFitter, euclidean_gp_args
 from dragonfly.utils.option_handler import get_option_specs, load_options
-from gp.gp_util import get_gp_fitter, get_tuned_gp, get_best_dragonfly_prior
+from OCBO.gp.gp_util import get_gp_fitter, get_tuned_gp, get_best_dragonfly_prior
 from OCBO.util.misc_util import uniform_draw
 
 cts_opt_args = [\

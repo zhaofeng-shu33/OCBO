@@ -4,7 +4,7 @@ Random strategy in continuous context setting.
 
 import numpy as np
 
-from cstrats.cts_opt import ContinuousOpt
+from OCBO.cstrats.cts_opt import ContinuousOpt
 
 class RandOpt(ContinuousOpt):
 

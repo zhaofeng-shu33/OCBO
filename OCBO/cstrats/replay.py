@@ -2,7 +2,7 @@
 Optimization that replace trace of a previous run with a fixed GP.
 """
 
-from cstrats.cts_opt import ContinuousOpt
+from OCBO.cstrats.cts_opt import ContinuousOpt
 
 class CtsReplay(ContinuousOpt):
 

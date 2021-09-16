@@ -1,7 +1,7 @@
-from cstrats.profile_cts import ContinuousMultiTaskTS
-from cstrats import copts
+from OCBO.cstrats.profile_cts import ContinuousMultiTaskTS
+from OCBO.cstrats import copts
 from dragonfly.utils.option_handler import load_options
-from synth.twod import branin
+from OCBO.synth.twod import branin
 from OCBO.util.misc_util import uniform_draw
 
 from argparse import Namespace
