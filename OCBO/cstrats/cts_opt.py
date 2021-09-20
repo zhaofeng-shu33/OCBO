@@ -131,7 +131,7 @@ class ContinuousOpt(object):
         init_rewards = [self.function(pt) for pt in init_pts]
         if hp_tune_samps is not None:
             self.pre_tune_gp(hp_tune_samps, init_pts, init_rewards)
-        elif pre_tune:
+        elif pre_tune: # not tune GP hyper parameters
             self.pre_load_points(init_pts, init_rewards)
         else:
             self.load_init_pts(init_pts, init_rewards)
@@ -191,7 +191,7 @@ class ContinuousOpt(object):
         self.y_init = rewards
         self.pre_loaded_fit = True
         self.gp = get_tuned_gp(self.gp_engine, eval_pts, rewards,
-                               kernel_type=self.gp_options.kernel_type)
+                               kernel_type=self.gp_options.kernel_type)[0]
 
     def pre_tune_gp(self, hp_tune_samps, eval_pts, rewards):
         """Pre tune a GP's hyperparameters that will be fixed throughout.
