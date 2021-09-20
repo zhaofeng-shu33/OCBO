@@ -63,6 +63,11 @@ class ContinuousOpt(object):
                 cost.
         """
         self.function = function
+        _ret = function([i[0] for i in domain])
+        if isinstance(_ret, float):
+            self.has_constraint = False
+        else:
+            self.has_constraint = True
         self.domain = domain
         self.ctx_domain = domain[:ctx_dim]
         self.act_domain = domain[ctx_dim:]
@@ -109,6 +114,8 @@ class ContinuousOpt(object):
         self.x_data = []
         self.x_init = []
         self.y_data = []
+        if self.has_constraint:
+            self.constraints_data = []
         self.y_init = []
         self.query_history = []
         self.score_history = []
@@ -116,7 +123,7 @@ class ContinuousOpt(object):
         self.t = 0
         self.pre_loaded_fit = False
 
-    def optimize(self, max_capital, init_pts, pre_tune=False,
+    def optimize(self, max_capital, init_pts, pre_tune=True,
                  hp_tune_samps=None):
         """Do the whole optimization loop.
         Args:
@@ -128,20 +135,31 @@ class ContinuousOpt(object):
                 will first be tuned on this number of samples, then fixed.
         """
         # Get initial points and load.
-        init_rewards = [self.function(pt) for pt in init_pts]
+        if self.has_constraint:
+            _ret_list = [self.function(pt) for pt in init_pts]
+            init_rewards = [i[0] for i in _ret_list]
+            constraints = [i[1] for i in _ret_list]
+        else:
+            init_rewards = [self.function(pt) for pt in init_pts]
         if hp_tune_samps is not None:
             self.pre_tune_gp(hp_tune_samps, init_pts, init_rewards)
         elif pre_tune: # not tune GP hyper parameters
             self.pre_load_points(init_pts, init_rewards)
+            if self.has_constraint:
+                self.setup_constaint_gp(init_pts, constraints)
         else:
             self.load_init_pts(init_pts, init_rewards)
         # While there is capital...
         for _ in range(max_capital):
             # Make suggestion of next eval and make function call.
             pt = self.suggest_next_eval()
-            reward = self.function(pt)
+            if self.has_constraint:
+                reward, constraint_val = self.function(pt)
+            else:
+                reward = self.function(pt)
+                constraint_val = None
             # Receive feedback.
-            self.receive_feedback(pt, reward)
+            self.receive_feedback(pt, reward, constraint_val=constraint_val)
         # Return histories.
         return self.get_histories()
 
@@ -152,7 +170,7 @@ class ContinuousOpt(object):
         self._draw_next_gp()
         return self._determine_next_query()
 
-    def receive_feedback(self, eval_pt, reward):
+    def receive_feedback(self, eval_pt, reward, constraint_val=None):
         """Receive feedback from an evaluation.
         Args:
             eval_pt: Point of evaluation as a list.
@@ -162,6 +180,8 @@ class ContinuousOpt(object):
         self.y_data.append(reward)
         if self.gp is not None:
             self.gp.add_data_single(eval_pt, reward)
+        if self.has_constraint:
+            self.constraint_gp.add_data_single(eval_pt, constraint_val)
         self.t += 1
         self._update_history(eval_pt, reward)
         if not self.pre_loaded_fit and self.t % self.tune_every == 0:
@@ -191,6 +211,16 @@ class ContinuousOpt(object):
         self.y_init = rewards
         self.pre_loaded_fit = True
         self.gp = get_tuned_gp(self.gp_engine, eval_pts, rewards,
+                               kernel_type=self.gp_options.kernel_type)[0]
+
+    def setup_constaint_gp(self, eval_pts, targets):
+        """Give points to fit the GP, use this GP for the entire time.
+        Args:
+            eval_pts: List of lists representing points.
+            rewards: List of rewards.
+        """
+        self.constraints_data += targets
+        self.constraint_gp = get_tuned_gp(self.gp_engine, eval_pts, targets,
                                kernel_type=self.gp_options.kernel_type)[0]
 
     def pre_tune_gp(self, hp_tune_samps, eval_pts, rewards):
