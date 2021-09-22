@@ -3,7 +3,7 @@ from scipy.optimize import minimize
 
 import matplotlib.pyplot as plt
 
-from OCBO.cstrats.profile_cts import ContinuousMultiTaskTS, CMTSPM
+from OCBO.cstrats.profile_cts import ContinuousMultiTaskTS, CMTSPM, ProfileEI
 from OCBO.cstrats import copts
 from dragonfly.utils.option_handler import load_options
 
@@ -26,7 +26,7 @@ options = load_options(copts)
 options.profile_evals = 200
 options.num_profiles = 100
 options.kernel_type = 'matern'
-model = CMTSPM(function, domain, ctx_dim, options, eval_set=True, is_synthetic=False)
+model = ProfileEI(function, domain, ctx_dim, options, eval_set=True, is_synthetic=False)
 init_pts = list(uniform_draw(domain, init_capital))
 # switch off the hyper-parameter tuning of GP
 histories = model.optimize(max_capital, init_pts=init_pts, pre_tune=True)

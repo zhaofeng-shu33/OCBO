@@ -51,7 +51,7 @@ class ProfileEI(ProfileOpt):
         """Get the name of the strategies."""
         return 'pei'
 
-    def _get_ctx_improvement(self, ctx):
+    def _get_ctx_improvement(self, ctx, predict=False):
         """Get expected improvement over best posterior mean capped by
         the best seen reward so far.
         """
@@ -64,10 +64,12 @@ class ProfileEI(ProfileOpt):
                 + normal_distro.pdf(norm_diff))
         if self.has_constraint:
             _means, _covmat = self.constraint_gp.eval(act_set, include_covar=True)
-            _z = -1.0 * _means / _covmat
+            _z = -1.0 * _means / _covmat.diagonal()
             eis *= normal_distro.cdf(_z)
         ei_val = np.max(eis)
         ei_pt = act_set[np.argmax(eis)]
+        if predict:
+            return ei_pt
         return ei_pt, ei_val
 
 class CMTSPM(ProfileOpt):

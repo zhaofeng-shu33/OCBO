@@ -4,7 +4,7 @@ from scipy.optimize import NonlinearConstraint
 
 import matplotlib.pyplot as plt
 
-from OCBO.cstrats.profile_cts import ContinuousMultiTaskTS, CMTSPM
+from OCBO.cstrats.profile_cts import ContinuousMultiTaskTS, CMTSPM, ProfileEI
 from OCBO.cstrats import copts
 from dragonfly.utils.option_handler import load_options
 
@@ -20,13 +20,13 @@ function = black_box_function_1 # maximization problem
 domain = [[0, 6], [0, 6]]
 ctx_dim = 1
 max_capital = 150
-init_capital = 20
+init_capital = 50
 
 options = load_options(copts)
 options.profile_evals = 200
 options.num_profiles = 100
 options.kernel_type = 'matern'
-model = CMTSPM(function, domain, ctx_dim, options, eval_set=True, is_synthetic=False)
+model = ProfileEI(function, domain, ctx_dim, options, eval_set=True, is_synthetic=False)
 init_pts = list(uniform_draw(domain, init_capital))
 # switch off the hyper-parameter tuning of GP
 histories = model.optimize(max_capital, init_pts=init_pts, pre_tune=True)
@@ -45,8 +45,9 @@ for i in range(n):
     # extract the action
     action[i] = ctx_plus_action[-1]
     con = lambda y: np.cos(x) * np.cos(y) - np.sin(x) * np.sin(y) + 0.5
+    nlc = NonlinearConstraint(con, -np.inf, 0.0)
     true_action[i] = minimize(lambda y: np.cos(2 * x) * np.cos(y) + np.sin(x),
-        x0=[3.0], bounds=[(0, 6.0)], constraints=[{'type': 'ineq', 'fun': con}]).x[0]
+        x0=[3.0], bounds=[(0, 6.0)], constraints=nlc).x[0]
     # use scipy to compute the ground truth
     # import pdb
     # pdb.set_trace()
@@ -56,5 +57,5 @@ plt.plot(ctx_array, true_action, label='true')
 plt.legend()
 plt.xlabel('y')
 plt.ylabel('z')
-plt.savefig('build/cbo_1.png')
+plt.savefig('build/cbo_2.png')
 plt.show()
