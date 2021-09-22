@@ -22,6 +22,8 @@ cts_opt_args = [\
             'How often to tune hyperparams.'),
         get_option_specs('kernel_type', False, 'se',
             'The type of kernel to use in the GP.'),
+        get_option_specs('matern_nu', False, 2.5,
+            'matern_nu'),
         get_option_specs('use_additive_gp', False, False,
             'Whether to use an additive GP.'),
         get_option_specs('add_max_group_size', False, 6,
@@ -100,6 +102,7 @@ class ContinuousOpt(object):
         self.gp_options.act_dim = self.act_dim
         self.gp_options.use_additive_gp = options.use_additive_gp
         self.gp_options.add_max_group_size = options.add_max_group_size
+        self.gp_options.matern_nu = options.matern_nu
         self.eval_options = deepcopy(self.gp_options)
         self.eval_options.hp_tune_criterion = 'ml'
         # Set up for any special child functions.
@@ -211,7 +214,8 @@ class ContinuousOpt(object):
         self.y_init = rewards
         self.pre_loaded_fit = True
         self.gp = get_tuned_gp(self.gp_engine, eval_pts, rewards,
-                               kernel_type=self.gp_options.kernel_type)[0]
+                               kernel_type=self.gp_options.kernel_type,
+                               matern_nu=self.gp_options.matern_nu)[0]
 
     def setup_constaint_gp(self, eval_pts, targets):
         """Give points to fit the GP, use this GP for the entire time.
@@ -221,7 +225,8 @@ class ContinuousOpt(object):
         """
         self.constraints_data += targets
         self.constraint_gp = get_tuned_gp(self.gp_engine, eval_pts, targets,
-                               kernel_type=self.gp_options.kernel_type)[0]
+                               kernel_type=self.gp_options.kernel_type,
+                               matern_nu=self.gp_options.matern_nu)[0]
 
     def pre_tune_gp(self, hp_tune_samps, eval_pts, rewards):
         """Pre tune a GP's hyperparameters that will be fixed throughout.

@@ -99,7 +99,7 @@ def get_best_dragonfly_joint_prior(f_infos, kernel_type='se', samps_per=100):
                              build_posterior=False)
     return DragonflyGP(empty_core, options)
 
-def get_tuned_gp(gp_engine, x_data, y_data, kernel_type='se'):
+def get_tuned_gp(gp_engine, x_data, y_data, kernel_type='se', matern_nu=2.5):
     """
     Get a tuned gp for the data seen.
     Args:
@@ -112,6 +112,7 @@ def get_tuned_gp(gp_engine, x_data, y_data, kernel_type='se'):
     options.kernel_type = kernel_type
     options.hp_tune_criterion = 'ml'
     options.hp_samples = 0
+    options.matern_nu = matern_nu
     gp_fitter = get_gp_fitter(gp_engine, x_data, y_data, options)
     gp_fitter.fit_gp()
     return gp_fitter.get_next_gp(), options

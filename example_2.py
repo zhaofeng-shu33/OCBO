@@ -19,13 +19,14 @@ def black_box_function_1(vec):
 function = black_box_function_1 # maximization problem
 domain = [[0, 6], [0, 6]]
 ctx_dim = 1
-max_capital = 150
+max_capital = 100
 init_capital = 50
 
 options = load_options(copts)
 options.profile_evals = 200
 options.num_profiles = 100
 options.kernel_type = 'matern'
+options.matern_nu = 1.5
 model = ProfileEI(function, domain, ctx_dim, options, eval_set=True, is_synthetic=False)
 init_pts = list(uniform_draw(domain, init_capital))
 # switch off the hyper-parameter tuning of GP
