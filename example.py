@@ -16,6 +16,7 @@ def black_box_function_1(vec):
     # return (-func_val, constraint_val)
     return -func_val
 
+np.random.seed(12)
 function = black_box_function_1 # maximization problem
 domain = [[0, 6], [0, 6]]
 ctx_dim = 1
@@ -45,7 +46,8 @@ for i in range(n):
     # use scipy to compute the ground truth
     # import pdb
     # pdb.set_trace()
-
+L2_error = np.mean(np.power(true_action - action, 2))
+print(L2_error)
 plt.plot(ctx_array, action, label='bayesian')
 plt.plot(ctx_array, true_action, label='true')
 plt.legend()
