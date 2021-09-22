@@ -96,13 +96,15 @@ class ContinuousMultiTaskTS(ProfileOpt):
         """Get the name of the strategies."""
         return 'cmts'
 
-    def _get_ctx_improvement(self, ctx):
+    def _get_ctx_improvement(self, ctx, predict=False):
         """Get expected improvement over best posterior mean capped by
         the best seen reward so far.
         """
         act_set = sample_grid([list(ctx)], self.act_domain, self.profile_evals)
         means, covmat = self.gp.eval(act_set, include_covar=True)
         best_post = np.argmax(means)
+        if predict:
+            return act_set[best_post]
         sample = self.gp.draw_sample(means=means, covar=covmat).ravel()
         gain = np.max(sample) - sample[best_post]
         best_pt = act_set[np.argmax(sample)]
