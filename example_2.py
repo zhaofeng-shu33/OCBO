@@ -26,7 +26,7 @@ options = load_options(copts)
 options.profile_evals = 200
 options.num_profiles = 100
 options.kernel_type = 'matern'
-options.matern_nu = 1.5
+options.matern_nu = 0.5
 model = ProfileEI(function, domain, ctx_dim, options, eval_set=True, is_synthetic=False)
 init_pts = list(uniform_draw(domain, init_capital))
 # switch off the hyper-parameter tuning of GP
