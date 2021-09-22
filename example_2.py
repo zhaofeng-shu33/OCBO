@@ -16,11 +16,12 @@ def black_box_function_1(vec):
     constraint_val = np.cos(x) * np.cos(y) - np.sin(x) * np.sin(y) + 0.5
     return (-func_val, constraint_val)
 
+np.random.seed(100826730)
 function = black_box_function_1 # maximization problem
 domain = [[0, 6], [0, 6]]
 ctx_dim = 1
-max_capital = 100
-init_capital = 50
+max_capital = 10
+init_capital = 100
 
 options = load_options(copts)
 options.profile_evals = 200
@@ -52,7 +53,9 @@ for i in range(n):
     # use scipy to compute the ground truth
     # import pdb
     # pdb.set_trace()
-
+# compute the fitting error
+L2_error = np.mean(np.power(true_action - action, 2))
+print(L2_error)
 plt.plot(ctx_array, action, label='bayesian')
 plt.plot(ctx_array, true_action, label='true')
 plt.legend()
