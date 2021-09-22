@@ -1,5 +1,6 @@
 import numpy as np
 from scipy.optimize import minimize
+from scipy.optimize import NonlinearConstraint
 
 import matplotlib.pyplot as plt
 
@@ -12,9 +13,8 @@ from OCBO.util.misc_util import uniform_draw
 def black_box_function_1(vec):
     x, y = vec
     func_val = np.cos(2 * x) * np.cos(y) + np.sin(x)
-    # constraint_val = np.cos(x) * np.cos(y) - np.sin(x) * np.sin(y) + 0.5
-    # return (-func_val, constraint_val)
-    return -func_val
+    constraint_val = np.cos(x) * np.cos(y) - np.sin(x) * np.sin(y) + 0.5
+    return (-func_val, constraint_val)
 
 function = black_box_function_1 # maximization problem
 domain = [[0, 6], [0, 6]]
@@ -37,11 +37,16 @@ ctx_array = np.linspace(0, 6)
 n = ctx_array.shape[0]
 action = np.zeros(n)
 true_action = np.zeros(n)
+
+
 for i in range(n):
-    ctx_plus_action = model._get_ctx_improvement([ctx_array[i]], predict=True)
+    x = ctx_array[i]
+    ctx_plus_action = model._get_ctx_improvement([x], predict=True)
     # extract the action
     action[i] = ctx_plus_action[-1]
-    true_action[i] = minimize(lambda y: -black_box_function_1([ctx_array[i], y]), x0=[3.0], bounds=[(0, 6.0)]).x[0]
+    con = lambda y: np.cos(x) * np.cos(y) - np.sin(x) * np.sin(y) + 0.5
+    true_action[i] = minimize(lambda y: np.cos(2 * x) * np.cos(y) + np.sin(x),
+        x0=[3.0], bounds=[(0, 6.0)], constraints=[{'type': 'ineq', 'fun': con}]).x[0]
     # use scipy to compute the ground truth
     # import pdb
     # pdb.set_trace()
