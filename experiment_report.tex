@@ -19,11 +19,26 @@ as action.
 
 Our goal is to provide a surrogate model of $z=g(y)=\arg\max_{x} f(x,y)$.
 The exact solution is non-continuous, which means that it is very hard to estimate $z=g(y)$ at the
-non-continuous points.
+non-continuous points. Therefore, we need to sample more points in these places.
+Bayesian optimization accomplishes this goal,
+which can be verified by the histogram of samples $y$.
+
 \begin{figure}[!ht]
-    \centering
-    \includegraphics[width=6cm]{cbo_1.png}
+    \begin{subfigure}[b]{0.49\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{./cbo_1.png}
+        \caption{Fitting result}
+        \label{fig:rk_order_compare}
+    \end{subfigure}~
+    \begin{subfigure}[b]{0.49\textwidth}
+      \centering
+      \includegraphics[width=\textwidth]{./cbo_1_hist.png}
+      \caption{Histogram}
+      \label{fig:time_equal_verify}
+    \end{subfigure}
+    \caption{}
 \end{figure}
+
 \section{Experiment 2}
 Using the same object function but the adopted action should
 satisfy the constraints.

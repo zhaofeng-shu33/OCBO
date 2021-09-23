@@ -31,7 +31,10 @@ model = ProfileEI(function, domain, ctx_dim, options, eval_set=True, is_syntheti
 init_pts = list(uniform_draw(domain, init_capital))
 # switch off the hyper-parameter tuning of GP
 histories = model.optimize(max_capital, init_pts=init_pts, pre_tune=True)
+pt_list = [i.pt[0] for i in histories.query_history]
+plt.hist(pt_list, bins=20)
 # print(histories)
+# plot histogram of sampled target (collect the target data first)
 # plotting the result
 
 ctx_array = np.linspace(0, 6)
@@ -48,6 +51,7 @@ for i in range(n):
     # pdb.set_trace()
 L2_error = np.mean(np.power(true_action - action, 2))
 print(L2_error)
+plt.figure(2)
 plt.plot(ctx_array, action, label='bayesian')
 plt.plot(ctx_array, true_action, label='true')
 plt.legend()
