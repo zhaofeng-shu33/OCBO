@@ -146,6 +146,8 @@ class ContinuousOpt(object):
             init_rewards = [self.function(pt) for pt in init_pts]
         if hp_tune_samps is not None:
             self.pre_tune_gp(hp_tune_samps, init_pts, init_rewards)
+            if self.has_constraint:
+                self.pre_tune_constraint_gp(hp_tune_samps, init_pts, constraints)
         elif pre_tune: # not tune GP hyper parameters
             self.pre_load_points(init_pts, init_rewards)
             if self.has_constraint:
@@ -214,8 +216,7 @@ class ContinuousOpt(object):
         self.y_init = rewards
         self.pre_loaded_fit = True
         self.gp = get_tuned_gp(self.gp_engine, eval_pts, rewards,
-                               kernel_type=self.gp_options.kernel_type,
-                               matern_nu=self.gp_options.matern_nu)[0]
+                               self.gp_options)[0]
 
     def setup_constaint_gp(self, eval_pts, targets):
         """Give points to fit the GP, use this GP for the entire time.
@@ -225,8 +226,7 @@ class ContinuousOpt(object):
         """
         self.constraints_data += targets
         self.constraint_gp = get_tuned_gp(self.gp_engine, eval_pts, targets,
-                               kernel_type=self.gp_options.kernel_type,
-                               matern_nu=self.gp_options.matern_nu)[0]
+                               self.gp_options)[0]
 
     def pre_tune_gp(self, hp_tune_samps, eval_pts, rewards):
         """Pre tune a GP's hyperparameters that will be fixed throughout.
@@ -242,11 +242,29 @@ class ContinuousOpt(object):
         self.x_init = eval_pts
         self.y_init = rewards
         self.pre_loaded_fit = True
-        self.gp = get_best_dragonfly_prior(self.function, self.domain,
-                kernel_type=self.gp_options.kernel_type,
-                num_samples=hp_tune_samps)
+        if self.has_constraint:
+            self.gp = get_best_dragonfly_prior(lambda x: self.function(x)[0], self.domain,                    
+                        hp_tune_samps, self.gp_options)
+        else:
+            self.gp = get_best_dragonfly_prior(self.function, self.domain,
+                        hp_tune_samps, self.gp_options)
         for init_idx in range(len(rewards)):
             self.gp.add_data_single(eval_pts[init_idx], rewards[init_idx])
+
+    def pre_tune_constraint_gp(self, hp_tune_samps, eval_pts, rewards):
+        """Pre tune a GP's hyperparameters that will be fixed throughout.
+        Args:
+            hp_tune_samps: Number of samples to use for tuning hps.
+            eval_pts: x_data to add to the gp.
+            rewards: The rewards of the initial points.
+        """
+        if self.gp_engine is not 'dragonfly':
+            raise NotImplementedError('Pretuning HPs only for dragonfly.')
+        self.pre_loaded_fit = True
+        self.constraint_gp = get_best_dragonfly_prior(lambda x: self.function(x)[1], self.domain,
+                hp_tune_samps, self.gp_options)
+        for init_idx in range(len(rewards)):
+            self.constraint_gp.add_data_single(eval_pts[init_idx], rewards[init_idx])
 
     def get_histories(self):
         """Return Namespace object containing history information."""
@@ -267,10 +285,6 @@ class ContinuousOpt(object):
         self.eval_ctx_fidel, self.eval_act_fidel = eval_grid.shape[:2]
         self._find_best_score()
 
-    def set_gp(self, gp):
-        """Set the GP to be some GP that will not change through the algo."""
-        self.gp = gp
-        self.pre_loaded_fit = True
 
     @staticmethod
     def get_strat_name():

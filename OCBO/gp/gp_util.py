@@ -46,7 +46,7 @@ def gp_regression(gp_engine, x_data, y_data, options=None):
     gpf.fit_gp()
     return gpf.get_next_gp()
 
-def get_best_dragonfly_prior(f, domain, kernel_type='se', num_samples=100):
+def get_best_dragonfly_prior(f, domain, num_samples, gp_options):
     """
     Get best empirical prior for a function.
     Args:
@@ -62,7 +62,7 @@ def get_best_dragonfly_prior(f, domain, kernel_type='se', num_samples=100):
         pt = np.random.uniform(low_b, high_b)
         y_data.append(f(pt))
         x_data.append(pt)
-    tuned_gp, options = get_tuned_gp('dragonfly', x_data, y_data, kernel_type)
+    tuned_gp, options = get_tuned_gp('dragonfly', x_data, y_data, gp_options)
     tuned_kernel = tuned_gp.gp_core.kernel
     tuned_mean = tuned_gp.gp_core.mean_func
     tuned_noise = tuned_gp.gp_core.noise_var
@@ -99,7 +99,7 @@ def get_best_dragonfly_joint_prior(f_infos, kernel_type='se', samps_per=100):
                              build_posterior=False)
     return DragonflyGP(empty_core, options)
 
-def get_tuned_gp(gp_engine, x_data, y_data, kernel_type='se', matern_nu=2.5):
+def get_tuned_gp(gp_engine, x_data, y_data, gp_options):
     """
     Get a tuned gp for the data seen.
     Args:
@@ -109,10 +109,10 @@ def get_tuned_gp(gp_engine, x_data, y_data, kernel_type='se', matern_nu=2.5):
     Returns: Tuned GP as well as the options used.
     """
     options = load_options(euclidean_gp_args, cmd_line=False)
-    options.kernel_type = kernel_type
-    options.hp_tune_criterion = 'ml'
-    options.hp_samples = 0
-    options.matern_nu = matern_nu
+    options.kernel_type = gp_options.kernel_type
+    options.hp_tune_criterion = gp_options.hp_tune_criterion
+    options.hp_samples = gp_options.hp_samples
+    options.matern_nu = gp_options.matern_nu
     gp_fitter = get_gp_fitter(gp_engine, x_data, y_data, options)
     gp_fitter.fit_gp()
     return gp_fitter.get_next_gp(), options
