@@ -23,7 +23,7 @@ if __name__ == '__main__':
     parser.add_argument('--train_size', type=int, default=10)
     parser.add_argument('--profile_evals', type=int, default=200, help='number of samples in action space')
     parser.add_argument('--init_capital', type=int, default=100)
-    parser.add_argument('--action', choices=['fixed', 'adaptive'], default='fixed')
+    parser.add_argument('--xi', type=float, default=0.0)
 
     args = parser.parse_args()
 
@@ -37,6 +37,7 @@ if __name__ == '__main__':
     options = load_options(copts)
     options.profile_evals = args.profile_evals
     options.num_profiles = args.num_profiles
+    options.xi = args.xi
     options.kernel_type = 'matern'
     options.matern_nu = 0.5
     options.hp_samples = 10
