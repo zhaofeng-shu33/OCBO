@@ -15,6 +15,8 @@ prof_args = [\
             'Number of contexts to consider picking from.'),
         get_option_specs('profile_evals', False, 100,
             'Number of evaluations for each context to determine max.'),
+        get_option_specs('xi', False, 0.0,
+            'expected improvement hyperparameter, which controls the exploitation and exploration trade-off')
 ]
 
 class ProfileOpt(ContinuousOpt):
@@ -22,6 +24,7 @@ class ProfileOpt(ContinuousOpt):
     def _child_set_up(self, function, domain, ctx_dim, options):
         self.num_profiles = options.num_profiles
         self.profile_evals = options.profile_evals
+        self.xi = options.xi
 
     def _determine_next_query(self):
         # Get the contexts to test out.
@@ -59,7 +62,11 @@ class ProfileEI(ProfileOpt):
         means, covmat = self.gp.eval(act_set, include_covar=True)
         best_post = np.min([np.max(means), np.max(self.y_data)])
         stds = np.sqrt(covmat.diagonal().ravel())
-        norm_diff = (means - best_post) / stds
+        if predict:
+            xi = 0.0
+        else:
+            xi = self.xi
+        norm_diff = (means - best_post - xi) / stds
         eis = stds * (norm_diff * normal_distro.cdf(norm_diff) \
                 + normal_distro.pdf(norm_diff))
         if self.has_constraint:
