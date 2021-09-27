@@ -6,7 +6,7 @@ import numpy as np
 from dragonfly.gp.euclidean_gp import EuclideanGP, EuclideanGPFitter,\
         euclidean_gp_args
 from dragonfly.utils.option_handler import load_options
-from OCBO.gp.gp_interface import DragonflyGPFitter, DragonflyGP
+from OCBO.gp.gp_interface import DragonflyGPFitter, DragonflyGP, SklearnGPFitter
 
 # Check if running python 3, if so import gpython
 import sys
@@ -23,9 +23,8 @@ def get_gp_fitter(gp_engine, x_data, y_data, options):
     """
     if gp_engine.lower() == 'dragonfly':
         return DragonflyGPFitter(x_data, y_data, options)
-    elif gp_engine.lower() == 'gpytorch':
-        # Import here since will only work for python 3.6>=.
-        return PytorchGPFitter(x_data, y_data, options)
+    elif gp_engine.lower() == 'sklearn':
+        return SklearnGPFitter(x_data, y_data, options)
     else:
         raise ValueError('GP Engine %s not found.' % gp_engine)
 

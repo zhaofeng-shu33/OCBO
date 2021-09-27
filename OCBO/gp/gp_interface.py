@@ -6,6 +6,9 @@ from copy import deepcopy
 from dragonfly.gp.euclidean_gp import EuclideanGPFitter
 from dragonfly.utils.general_utils import solve_lower_triangular
 
+from sklearn.gaussian_process import GaussianProcessRegressor
+from sklearn.gaussian_process.kernels import Matern, ConstantKernel
+
 class GPWrapper(object):
 
     def __init__(self, gp_core, options):
@@ -118,6 +121,49 @@ class DragonflyGP(GPWrapper):
         V2 = solve_lower_triangular(self.gp_core.L, inters2.T)
         return prior_covs - V1.T.dot(V2)
 
+class SklearnGP(GPWrapper):
+
+    def eval(self, pts, include_covar=False):
+        """Get posterior mean and possibly covariance mat."""
+        if include_covar:
+            return self.gp_core.predict(pts, return_cov=True)
+        else:
+            return self.gp_core.predict(pts)
+
+    def draw_sample(self, samp_pts=None, means=None, covar=None):
+        """Draw a single sample from posterior at points."""
+        return self.gp_core.draw_samples(1, X_test=samp_pts, mean_vals=means,
+                                         covar=covar).ravel()
+
+    def add_data_single(self, pt, val):
+        """Add a single data point and observation to the GP."""
+        self.options.x_data.append(pt)
+        self.options.y_data.append(val)
+        self.gp_core.fit(self.options.x_data, self.options.y_data)
+
+    def build_posterior(self):
+        """Build the GP posterior."""
+        if self.gp_core.alpha is None:
+            self.gp_core.build_posterior()
+
+    def get_estimated_noise(self):
+        """Return the estimated noise."""
+        return self.gp_core.noise_var
+
+    def get_kernel_hps(self):
+        """Return the hps of the kernel."""
+        hps = self.gp_core.kernel.get_params()
+        return hps
+
+    def get_pt_relations(self, pt_set1, pt_set2):
+        """Return the covariances between points in first set with second."""
+        prior_covs = self.gp_core.kernel(pt_set1, pt_set2)
+        inters1 = self.gp_core.kernel(pt_set1, self.gp_core.X)
+        V1 = solve_lower_triangular(self.gp_core.L, inters1.T)
+        inters2 = self.gp_core.kernel(pt_set2, self.gp_core.X)
+        V2 = solve_lower_triangular(self.gp_core.L, inters2.T)
+        return prior_covs - V1.T.dot(V2)
+
 class DragonflyGPFitter(GPFitterWrapper):
 
     def fit_gp(self):
@@ -136,3 +182,27 @@ class DragonflyGPFitter(GPFitterWrapper):
         """Initialize the GP fitter."""
         self.gpf_core = EuclideanGPFitter(self.x_data, self.y_data,
                                           self.options)
+
+class SklearnGPFitter(GPFitterWrapper):
+
+    def fit_gp(self):
+        """Fit the GP according to options."""
+        self.gpf_core.fit(self.x_data, self.y_data)
+
+    def get_next_gp(self):
+        """Get the next GP from previously fitted.
+        Returns: GPWrapper object.
+        """
+        next_gp = self.gpf_core
+        next_gp.fit(self.x_data, self.y_data)
+        self.options.x_data = self.x_data
+        self.options.y_data = self.y_data
+        return SklearnGP(next_gp, self.options)
+
+    def _init_gpf(self):
+        """Initialize the GP fitter."""
+        if self.options.kernel_type == 'matern':
+            kernel = Matern(nu=self.options.matern_nu)
+        else:
+            kernel = ConstantKernel(constant_value=1)        
+        self.gpf_core = GaussianProcessRegressor(kernel=kernel)

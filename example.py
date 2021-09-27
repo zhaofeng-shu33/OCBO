@@ -26,6 +26,7 @@ init_capital = 20
 options = load_options(copts)
 options.profile_evals = 200
 options.num_profiles = 100
+options.gp_engine = 'sklearn'
 options.kernel_type = 'matern'
 model = ProfileEI(function, domain, ctx_dim, options, eval_set=True, is_synthetic=False)
 init_pts = list(uniform_draw(domain, init_capital))
