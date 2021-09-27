@@ -3,11 +3,13 @@ GP class that interfaces with several different GP libraries.
 """
 from copy import deepcopy
 
+import numpy as np
+
 from dragonfly.gp.euclidean_gp import EuclideanGPFitter
 from dragonfly.utils.general_utils import solve_lower_triangular
 
 from sklearn.gaussian_process import GaussianProcessRegressor
-from sklearn.gaussian_process.kernels import Matern, ConstantKernel
+from sklearn.gaussian_process.kernels import Matern, ConstantKernel, RBF, RationalQuadratic
 
 class GPWrapper(object):
 
@@ -202,7 +204,11 @@ class SklearnGPFitter(GPFitterWrapper):
     def _init_gpf(self):
         """Initialize the GP fitter."""
         if self.options.kernel_type == 'matern':
-            kernel = Matern(nu=self.options.matern_nu)
+            kernel = Matern(nu=self.options.matern_nu, length_scale=np.ones(len(self.x_data[0])))
+        elif self.options.kernel_type == 'rbf':
+            kernel = RBF(length_scale=np.ones(len(self.x_data[0]))) # squared exponential kernel
+        elif self.options.kernel_type == 'rq': # rational quadratic
+            kernel = RationalQuadratic()
         else:
-            kernel = ConstantKernel(constant_value=1)        
-        self.gpf_core = GaussianProcessRegressor(kernel=kernel)
+            kernel = ConstantKernel(constant_value=1)
+        self.gpf_core = GaussianProcessRegressor(kernel=kernel, n_restarts_optimizer=self.options.hp_samples)

@@ -24,7 +24,8 @@ if __name__ == '__main__':
     parser.add_argument('--profile_evals', type=int, default=200, help='number of samples in action space')
     parser.add_argument('--init_capital', type=int, default=100)
     parser.add_argument('--xi', type=float, default=0.0)
-
+    parser.add_argument('--kernel_type', choices=['rbf', 'matern', 'rq'], default='matern')
+    parser.add_argument('--n_restarts_optimizer', type=int, default=1)
     args = parser.parse_args()
 
     np.random.seed(100826730)
@@ -39,9 +40,9 @@ if __name__ == '__main__':
     options.num_profiles = args.num_profiles
     options.xi = args.xi
     options.gp_engine = 'sklearn'
-    options.kernel_type = 'matern'
+    options.kernel_type = args.kernel_type
     options.matern_nu = 0.5
-    options.hp_samples = 10
+    options.hp_samples = args.n_restarts_optimizer
     model = ProfileEI(function, domain, ctx_dim, options, eval_set=True, is_synthetic=False)
     init_pts = list(uniform_draw(domain, init_capital))
     # switch off the hyper-parameter tuning of GP
