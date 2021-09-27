@@ -59,6 +59,10 @@ class ProfileEI(ProfileOpt):
         """Get expected improvement over best posterior mean capped by
         the best seen reward so far.
         """
+        if predict:
+            _, act = self.get_T_alpha(ctx)
+            return np.hstack((ctx, act))
+
         act_set = sample_grid([list(ctx)], self.act_domain, self.profile_evals)
         means, covmat = self.gp.eval(act_set, include_covar=True)
         best_post = np.min([np.max(means), np.max(self.y_data)])
@@ -99,6 +103,18 @@ class ProfileEI(ProfileOpt):
         # Return the best context and action.
         return best_pt
 
+    def get_T_alpha(self, task, init_action=None):
+        if init_action is None:
+            action = uniform_draw(self.act_domain, 1)
+        else:
+            action = init_action
+        res = minimize(lambda x: -1.0 * self.gp.eval(np.hstack((task, x)).reshape(1, -1)),
+                           action,
+                           bounds=self.act_domain,
+                           method="L-BFGS-B")
+        max_mean = -res.fun[0]
+        return max_mean, res.x
+
     def ctx_improvement_func(self, ctx):
         """Get expected improvement over best posterior mean capped by
         the best seen reward so far.
@@ -107,11 +123,7 @@ class ProfileEI(ProfileOpt):
         task = ctx[0, :self.ctx_dim]
         action = ctx[0, self.ctx_dim:]
         # embedded optimization
-        res = minimize(lambda x: -1.0 * self.gp.eval(np.hstack((task, x)).reshape(1, -1)),
-                           action,
-                           bounds=self.act_domain,
-                           method="L-BFGS-B")
-        max_mean = -res.fun[0]
+        max_mean, _ = self.get_T_alpha(task, init_action=action)
         means, covmat = self.gp.eval(ctx, include_covar=True)
         best_post = np.min([max_mean, self.y_max])
         stds = np.sqrt(covmat.diagonal().ravel())
