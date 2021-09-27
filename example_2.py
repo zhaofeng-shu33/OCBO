@@ -38,13 +38,14 @@ if __name__ == '__main__':
     options.profile_evals = args.profile_evals
     options.num_profiles = args.num_profiles
     options.xi = args.xi
+    options.gp_engine = 'sklearn'
     options.kernel_type = 'matern'
     options.matern_nu = 0.5
     options.hp_samples = 10
     model = ProfileEI(function, domain, ctx_dim, options, eval_set=True, is_synthetic=False)
     init_pts = list(uniform_draw(domain, init_capital))
     # switch off the hyper-parameter tuning of GP
-    histories = model.optimize(max_capital, init_pts=init_pts, hp_tune_samps=200, pre_tune=True)
+    histories = model.optimize(max_capital, init_pts=init_pts, pre_tune=True)
     # print(histories)
     # plotting the result
 

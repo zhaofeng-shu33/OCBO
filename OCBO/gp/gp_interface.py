@@ -195,8 +195,8 @@ class SklearnGPFitter(GPFitterWrapper):
         """
         next_gp = self.gpf_core
         next_gp.fit(self.x_data, self.y_data)
-        self.options.x_data = self.x_data
-        self.options.y_data = self.y_data
+        self.options.x_data = self.x_data.copy()
+        self.options.y_data = self.y_data.copy()
         return SklearnGP(next_gp, self.options)
 
     def _init_gpf(self):
