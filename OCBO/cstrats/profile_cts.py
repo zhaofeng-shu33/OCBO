@@ -59,9 +59,9 @@ class ProfileEI(ProfileOpt):
         """Get expected improvement over best posterior mean capped by
         the best seen reward so far.
         """
-        if predict:
-            _, act = self.get_T_alpha(ctx)
-            return np.hstack((ctx, act))
+        #if predict:
+        #    _, act = self.get_maximal_mean(ctx)
+        #    return np.hstack((ctx, act))
 
         act_set = sample_grid([list(ctx)], self.act_domain, self.profile_evals)
         means, covmat = self.gp.eval(act_set, include_covar=True)
@@ -103,7 +103,7 @@ class ProfileEI(ProfileOpt):
         # Return the best context and action.
         return best_pt
 
-    def get_T_alpha(self, task, init_action=None):
+    def get_maximal_mean(self, task, init_action=None):
         if init_action is None:
             action = uniform_draw(self.act_domain, 1)
         else:
@@ -123,9 +123,9 @@ class ProfileEI(ProfileOpt):
         task = ctx[0, :self.ctx_dim]
         action = ctx[0, self.ctx_dim:]
         # embedded optimization
-        max_mean, _ = self.get_T_alpha(task, init_action=action)
-        means, covmat = self.gp.eval(ctx, include_covar=True)
+        max_mean, _ = self.get_maximal_mean(task, init_action=action)
         best_post = np.min([max_mean, self.y_max])
+        means, covmat = self.gp.eval(ctx, include_covar=True)
         stds = np.sqrt(covmat.diagonal().ravel())
         xi = 0.0
         norm_diff = (means - best_post - xi) / stds

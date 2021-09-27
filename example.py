@@ -24,7 +24,7 @@ max_capital = 150
 init_capital = 20
 
 options = load_options(copts)
-options.profile_evals = 1
+options.profile_evals = 200
 options.num_profiles = 4
 options.gp_engine = 'sklearn'
 options.kernel_type = 'matern'
