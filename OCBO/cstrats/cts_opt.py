@@ -157,6 +157,7 @@ class ContinuousOpt(object):
         # While there is capital...
         for _ in range(max_capital):
             # Make suggestion of next eval and make function call.
+            self.y_max = np.max(self.y_data)
             pt = self.suggest_next_eval()
             if self.has_constraint:
                 reward, constraint_val = self.function(pt)
@@ -182,7 +183,7 @@ class ContinuousOpt(object):
             reward: Reward received at point.
         """
         self.x_data.append(eval_pt)
-        self.y_data.append(reward)
+        self.y_data.append(reward)        
         if self.gp is not None:
             self.gp.add_data_single(eval_pt, reward)
         if self.has_constraint:

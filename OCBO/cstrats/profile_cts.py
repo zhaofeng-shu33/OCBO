@@ -5,6 +5,7 @@ Thompson Sampling strategies for continuous context.
 from argparse import Namespace
 import numpy as np
 from scipy.stats import norm as normal_distro
+from scipy.optimize import minimize
 
 from OCBO.cstrats.cts_opt import ContinuousOpt
 from dragonfly.utils.option_handler import get_option_specs
@@ -78,6 +79,42 @@ class ProfileEI(ProfileOpt):
         if predict:
             return ei_pt
         return ei_pt, ei_val
+
+    def _determine_next_query(self):
+        # Get the contexts to test out.
+        ctxs = uniform_draw(self.domain, self.num_profiles)
+        # For each context...
+        # Explore the parameter space more thoroughly
+        best_pt, best_imp = None, float('-inf')
+        for ctx in ctxs:
+            # Find the best context and give its improvement.
+            res = minimize(lambda x: -1.0 * self.ctx_improvement_func(x.reshape(1, -1)),
+                           ctx.reshape(1, -1),
+                           bounds=self.domain,
+                           method="L-BFGS-B")
+            imp = -res.fun[0]
+            if imp > best_imp:
+                best_pt = res.x
+                best_imp = imp
+        # Return the best context and action.
+        return best_pt
+
+    def ctx_improvement_func(self, ctx):
+        """Get expected improvement over best posterior mean capped by
+        the best seen reward so far.
+        """
+        means, covmat = self.gp.eval(ctx, include_covar=True)
+        best_post = np.min([means[0], self.y_max])
+        stds = np.sqrt(covmat.diagonal().ravel())
+        xi = 0.0
+        norm_diff = (means - best_post - xi) / stds
+        eis = stds * (norm_diff * normal_distro.cdf(norm_diff) \
+                + normal_distro.pdf(norm_diff))
+        if self.has_constraint:
+            _means, _covmat = self.constraint_gp.eval(ctx, include_covar=True)
+            _z = -1.0 * _means / _covmat.diagonal()
+            eis *= normal_distro.cdf(_z)
+        return eis
 
 class CMTSPM(ProfileOpt):
 
