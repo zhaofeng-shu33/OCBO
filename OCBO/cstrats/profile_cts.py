@@ -103,8 +103,17 @@ class ProfileEI(ProfileOpt):
         """Get expected improvement over best posterior mean capped by
         the best seen reward so far.
         """
+        # extract task part from ctx
+        task = ctx[0, :self.ctx_dim]
+        action = ctx[0, self.ctx_dim:]
+        # embedded optimization
+        res = minimize(lambda x: -1.0 * self.gp.eval(np.hstack((task, x)).reshape(1, -1)),
+                           action,
+                           bounds=self.act_domain,
+                           method="L-BFGS-B")
+        max_mean = -res.fun[0]
         means, covmat = self.gp.eval(ctx, include_covar=True)
-        best_post = np.min([means[0], self.y_max])
+        best_post = np.min([max_mean, self.y_max])
         stds = np.sqrt(covmat.diagonal().ravel())
         xi = 0.0
         norm_diff = (means - best_post - xi) / stds
