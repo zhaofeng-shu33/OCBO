@@ -92,10 +92,8 @@ class ProfileEI(ProfileOpt):
         """Get expected improvement over best posterior mean capped by
         the best seen reward so far. No sampling, optimize using some gradient methods
         """
-        max_mean, candidate_act = self.get_maximal_mean(ctx)
-        best_post = np.min([max_mean, np.max(self.y_data)]) # T_alpha
         # obtain the best act by solving a non-linear equation
-        def negative_PEI_star(act):
+        def negative_PEI_star(act, best_post):
             # concantenate ctx with act to obtain the whole vector
             act_set = np.hstack((ctx, act)).reshape(1, -1)
             means, covmat = self.gp.eval(act_set, include_covar=True)        
@@ -112,15 +110,22 @@ class ProfileEI(ProfileOpt):
                 _z = -1.0 * _means / _covmat.diagonal()
                 eis *= normal_distro.cdf(_z)
             return -1.0 * eis
-        # minimize the function negative_PEI_star
-        res = minimize(negative_PEI_star,
-                           candidate_act,
-                           bounds=self.act_domain,
-                           method="L-BFGS-B")
-        ei_pt = res.x
+        best_imp = np.infty
+        ei_pt = None
+        for _ in range(self.options.profile_evals):
+            max_mean, candidate_act = self.get_maximal_mean(ctx)
+            best_post = np.min([max_mean, np.max(self.y_data)]) # T_alpha
+            # minimize the function negative_PEI_star
+            res = minimize(lambda x: negative_PEI_star(x, best_post),
+                            candidate_act,
+                            bounds=self.act_domain,
+                            method="L-BFGS-B")
+            if res.fun[0] < best_imp:
+                best_imp = res.fun[0]
+                ei_pt = np.hstack((ctx, res.x))
         if predict:
             return ei_pt
-        ei_val = -res.fun[0]
+        ei_val = -best_imp
         return ei_pt, ei_val
 
     def _determine_next_query(self):

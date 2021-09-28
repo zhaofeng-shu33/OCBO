@@ -33,8 +33,8 @@ if __name__ == '__main__':
         options.profile_evals = 200
         options.num_profiles = 100
     else:
-        options.profile_evals = 200
-        options.num_profiles = 8
+        options.profile_evals = 3
+        options.num_profiles = 8 # influence the performance
         options.gp_engine = 'sklearn'
     options.kernel_type = 'matern'
     model = ProfileEI(function, domain, ctx_dim, options, eval_set=True, is_synthetic=False)
