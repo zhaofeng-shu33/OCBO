@@ -33,7 +33,7 @@ if __name__ == '__main__':
         options.profile_evals = 200
         options.num_profiles = 100
     else:
-        options.profile_evals = 3
+        options.profile_evals = 6
         options.num_profiles = 8 # influence the performance
         options.gp_engine = 'sklearn'
     options.kernel_type = 'matern'

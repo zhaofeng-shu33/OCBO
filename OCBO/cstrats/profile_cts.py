@@ -109,7 +109,7 @@ class ProfileEI(ProfileOpt):
                 _means, _covmat = self.constraint_gp.eval(act_set, include_covar=True)
                 _z = -1.0 * _means / _covmat.diagonal()
                 eis *= normal_distro.cdf(_z)
-            return -1.0 * eis
+            return -1.0 * eis[0]
         best_imp = np.infty
         ei_pt = None
         for _ in range(self.options.profile_evals):
@@ -120,8 +120,8 @@ class ProfileEI(ProfileOpt):
                             candidate_act,
                             bounds=self.act_domain,
                             method="L-BFGS-B")
-            if res.fun[0] < best_imp:
-                best_imp = res.fun[0]
+            if res.fun < best_imp:
+                best_imp = res.fun
                 ei_pt = np.hstack((ctx, res.x))
         if predict:
             return ei_pt
@@ -142,7 +142,7 @@ class ProfileEI(ProfileOpt):
                            ctx.reshape(1, -1),
                            bounds=self.domain,
                            method="L-BFGS-B")
-            imp = -res.fun[0]
+            imp = -res.fun
             if imp > best_imp:
                 best_pt = res.x
                 best_imp = imp
@@ -154,11 +154,11 @@ class ProfileEI(ProfileOpt):
             action = uniform_draw(self.act_domain, 1)
         else:
             action = init_action
-        res = minimize(lambda x: -1.0 * self.gp.eval(np.hstack((task, x)).reshape(1, -1)),
+        res = minimize(lambda x: -1.0 * self.gp.eval(np.hstack((task, x)).reshape(1, -1))[0],
                            action,
                            bounds=self.act_domain,
                            method="L-BFGS-B")
-        max_mean = -res.fun[0]
+        max_mean = -res.fun
         return max_mean, res.x
 
     def ctx_improvement_func(self, ctx):
@@ -181,7 +181,7 @@ class ProfileEI(ProfileOpt):
             _means, _covmat = self.constraint_gp.eval(ctx, include_covar=True)
             _z = -1.0 * _means / _covmat.diagonal()
             eis *= normal_distro.cdf(_z)
-        return eis
+        return eis[0]
 
 class CMTSPM(ProfileOpt):
 
