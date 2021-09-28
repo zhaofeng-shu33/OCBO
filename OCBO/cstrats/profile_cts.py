@@ -69,7 +69,7 @@ class ProfileEI(ProfileOpt):
 
         act_set = sample_grid([list(ctx)], self.act_domain, self.profile_evals)
         means, covmat = self.gp.eval(act_set, include_covar=True)
-        best_post = np.min([np.max(means), np.max(self.y_data)])
+        best_post = np.min([np.max(means), self.y_max])
         stds = np.sqrt(covmat.diagonal().ravel())
         if predict:
             xi = 0.0
@@ -110,22 +110,25 @@ class ProfileEI(ProfileOpt):
                 _z = -1.0 * _means / _covmat.diagonal()
                 eis *= normal_distro.cdf(_z)
             return -1.0 * eis[0]
-        best_imp = np.infty
+        best_imp = -np.infty
         ei_pt = None
         for _ in range(self.options.profile_evals):
             max_mean, candidate_act = self.get_maximal_mean(ctx)
-            best_post = np.min([max_mean, np.max(self.y_data)]) # T_alpha
+            # best_post = np.min([max_mean, self.y_max]) # T_alpha
             # minimize the function negative_PEI_star
-            res = minimize(lambda x: negative_PEI_star(x, best_post),
-                            candidate_act,
-                            bounds=self.act_domain,
-                            method="L-BFGS-B")
-            if res.fun < best_imp:
-                best_imp = res.fun
-                ei_pt = np.hstack((ctx, res.x))
+            # res = minimize(lambda x: negative_PEI_star(x, best_post),
+            #                uniform_draw(self.act_domain, 1).reshape(1),
+            #                bounds=self.act_domain,
+            #                method="L-BFGS-B")
+            # if not res.success:
+            #    import pdb
+            #    pdb.set_trace()
+            if max_mean > best_imp:
+                best_imp = max_mean
+                ei_pt = np.hstack((ctx, candidate_act))
         if predict:
             return ei_pt
-        ei_val = -best_imp
+        ei_val = best_imp
         return ei_pt, ei_val
 
     def _determine_next_query(self):

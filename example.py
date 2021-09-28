@@ -33,8 +33,8 @@ if __name__ == '__main__':
         options.profile_evals = 200
         options.num_profiles = 100
     else:
-        options.profile_evals = 6
-        options.num_profiles = 8 # influence the performance
+        options.profile_evals = 20
+        options.num_profiles = 10 # influence the performance
         options.gp_engine = 'sklearn'
     options.kernel_type = 'matern'
     model = ProfileEI(function, domain, ctx_dim, options, eval_set=True, is_synthetic=False)
@@ -62,10 +62,10 @@ if __name__ == '__main__':
     L2_error = np.mean(np.power(true_action - action, 2))
     print(L2_error)
     plt.figure(2)
-    plt.plot(ctx_array, action, label='bayesian')
-    plt.plot(ctx_array, true_action, label='true')
+    plt.plot(ctx_array, action, label='bayesian', linewidth=4)
+    plt.plot(ctx_array, true_action, label='true', linewidth=2)
     plt.legend()
-    plt.xlabel('y')
+    plt.xlabel('x')
     plt.ylabel('z')
     plt.savefig('build/cbo_1.png')
     plt.show()

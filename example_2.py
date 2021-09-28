@@ -1,3 +1,4 @@
+# python example_2.py --opt_sampling
 import argparse
 import numpy as np
 from scipy.optimize import minimize
@@ -19,14 +20,16 @@ def black_box_function_1(vec):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('--num_profiles', type=int, default=100, help='number of samples in context space')
+    # parser.add_argument('--num_profiles', type=int, default=100, help='number of samples in context space')
     parser.add_argument('--train_size', type=int, default=10)
-    parser.add_argument('--profile_evals', type=int, default=200, help='number of samples in action space')
+    # parser.add_argument('--profile_evals', type=int, default=200, help='number of samples in action space')
     parser.add_argument('--init_capital', type=int, default=100)
     parser.add_argument('--xi', type=float, default=0.0)
     parser.add_argument('--kernel_type', choices=['rbf', 'matern', 'rq'], default='matern')
     parser.add_argument('--n_restarts_optimizer', type=int, default=1)
+    parser.add_argument('--opt_sampling', default=False, const=True, nargs='?')
     args = parser.parse_args()
+
 
     np.random.seed(100826730)
     function = black_box_function_1 # maximization problem
@@ -36,8 +39,13 @@ if __name__ == '__main__':
     init_capital = args.init_capital
 
     options = load_options(copts)
-    options.profile_evals = args.profile_evals
-    options.num_profiles = args.num_profiles
+    options.opt_sampling = args.opt_sampling
+    if options.opt_sampling:
+        options.profile_evals = 200
+        options.num_profiles = 100
+    else:
+        options.profile_evals = 20
+        options.num_profiles = 10        
     options.xi = args.xi
     options.gp_engine = 'sklearn'
     options.kernel_type = args.kernel_type
