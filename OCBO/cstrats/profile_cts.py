@@ -17,7 +17,8 @@ prof_args = [\
         get_option_specs('profile_evals', False, 100,
             'Number of evaluations for each context to determine max.'),
         get_option_specs('xi', False, 0.0,
-            'expected improvement hyperparameter, which controls the exploitation and exploration trade-off')
+            'expected improvement hyperparameter, which controls the exploitation and exploration trade-off'),
+        get_option_specs('opt_sampling', False, True, 'whether to perform the optimization by finite sampling strategy')            
 ]
 
 class ProfileOpt(ContinuousOpt):
@@ -26,6 +27,7 @@ class ProfileOpt(ContinuousOpt):
         self.num_profiles = options.num_profiles
         self.profile_evals = options.profile_evals
         self.xi = options.xi
+        self.opt_sampling = options.opt_sampling
 
     def _determine_next_query(self):
         # Get the contexts to test out.
@@ -85,6 +87,8 @@ class ProfileEI(ProfileOpt):
         return ei_pt, ei_val
 
     def _determine_next_query(self):
+        if self.opt_sampling:
+            return super(ProfileEI, self)._determine_next_query()
         # Get the contexts to test out.
         ctxs = uniform_draw(self.domain, self.num_profiles)
         # For each context...
