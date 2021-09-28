@@ -61,6 +61,8 @@ class ProfileEI(ProfileOpt):
         """Get expected improvement over best posterior mean capped by
         the best seen reward so far.
         """
+        if self.opt_sampling is False:
+            return self._get_ctx_improvement_no_sampling(ctx, predict=predict)
         #if predict:
         #    _, act = self.get_maximal_mean(ctx)
         #    return np.hstack((ctx, act))
@@ -84,6 +86,41 @@ class ProfileEI(ProfileOpt):
         ei_pt = act_set[np.argmax(eis)]
         if predict:
             return ei_pt
+        return ei_pt, ei_val
+
+    def _get_ctx_improvement_no_sampling(self, ctx, predict=False):
+        """Get expected improvement over best posterior mean capped by
+        the best seen reward so far. No sampling, optimize using some gradient methods
+        """
+        max_mean, candidate_act = self.get_maximal_mean(ctx)
+        best_post = np.min([max_mean, np.max(self.y_data)]) # T_alpha
+        # obtain the best act by solving a non-linear equation
+        def negative_PEI_star(act):
+            # concantenate ctx with act to obtain the whole vector
+            act_set = np.hstack((ctx, act)).reshape(1, -1)
+            means, covmat = self.gp.eval(act_set, include_covar=True)        
+            stds = np.sqrt(covmat.diagonal().ravel())
+            if predict:
+                xi = 0.0
+            else:
+                xi = self.xi
+            norm_diff = (means - best_post - xi) / stds
+            eis = stds * (norm_diff * normal_distro.cdf(norm_diff) \
+                    + normal_distro.pdf(norm_diff))
+            if self.has_constraint:
+                _means, _covmat = self.constraint_gp.eval(act_set, include_covar=True)
+                _z = -1.0 * _means / _covmat.diagonal()
+                eis *= normal_distro.cdf(_z)
+            return -1.0 * eis
+        # minimize the function negative_PEI_star
+        res = minimize(negative_PEI_star,
+                           candidate_act,
+                           bounds=self.act_domain,
+                           method="L-BFGS-B")
+        ei_pt = res.x
+        if predict:
+            return ei_pt
+        ei_val = -res.fun[0]
         return ei_pt, ei_val
 
     def _determine_next_query(self):
