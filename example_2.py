@@ -27,6 +27,7 @@ if __name__ == '__main__':
     parser.add_argument('--xi', type=float, default=0.0)
     parser.add_argument('--kernel_type', choices=['rbf', 'matern', 'rq'], default='matern')
     parser.add_argument('--n_restarts_optimizer', type=int, default=1)
+    parser.add_argument('--matern_nu', type=float, default=0.5)
     parser.add_argument('--opt_sampling', default=False, const=True, nargs='?')
     args = parser.parse_args()
 
@@ -49,7 +50,7 @@ if __name__ == '__main__':
     options.xi = args.xi
     options.gp_engine = 'sklearn'
     options.kernel_type = args.kernel_type
-    options.matern_nu = 0.5
+    options.matern_nu = args.matern_nu
     options.hp_samples = args.n_restarts_optimizer
     model = ProfileEI(function, domain, ctx_dim, options, eval_set=True, is_synthetic=False)
     init_pts = list(uniform_draw(domain, init_capital))
@@ -86,7 +87,7 @@ if __name__ == '__main__':
     plt.plot(ctx_array, action, label='bayesian')
     plt.plot(ctx_array, true_action, label='true')
     plt.legend()
-    plt.xlabel('y')
+    plt.xlabel('x')
     plt.ylabel('z')
     plt.savefig('build/cbo_2.png')
     plt.show()

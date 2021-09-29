@@ -9,15 +9,15 @@
 \begin{document}
 \maketitle
 \section{Experiment 1}
-Using Contextual BO to find the maximal value of $f(x,y)$ for given $y$.
+Using Contextual BO to find the maximal value of $f(x,a)$ for given $x$.
 \begin{equation}\label{eq:f}
-    f(x,y) = \cos(2 x) \cos(y) + \sin(x)
+    f(x,a) = \cos(2 x) \cos(a) + \sin(x)
 \end{equation}
 Choosing $x,y \in [0,6]$.
-In this experiment, $x$ is treated as task while $y$ is treated
+In this experiment, $x$ is treated as task while $a$ is treated
 as action.
 
-Our goal is to provide a surrogate model of $z=g(x)=\arg\max_{y} f(x,y)$.
+Our goal is to provide a surrogate model of $z=g(x)=\arg\max_{a} f(x,a)$.
 The exact solution is non-continuous, which means that it is very hard to estimate $z=g(x)$ at the
 non-continuous points. Therefore, we need to sample more points in these places.
 Bayesian optimization accomplishes this goal,
@@ -43,7 +43,7 @@ which can be verified by the histogram of samples $x$.
 Using the same object function but the adopted action should
 satisfy the constraints.
 \begin{equation}
-    \cos(x)  \cos(y) - \sin(x) \sin(y) + 0.5 \leq 0    
+    \cos(x)  \cos(a) - \sin(x) \sin(a) + 0.5 \leq 0    
 \end{equation}
 \begin{figure}[!ht]
     \centering
