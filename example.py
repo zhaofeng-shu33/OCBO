@@ -15,7 +15,8 @@ def black_box_function_1(vec):
     func_val = np.cos(2 * x) * np.cos(y) + np.sin(x)
     # constraint_val = np.cos(x) * np.cos(y) - np.sin(x) * np.sin(y) + 0.5
     # return (-func_val, constraint_val)
-    return -func_val
+    return func_val
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--opt_sampling', default=False, const=True, nargs='?')

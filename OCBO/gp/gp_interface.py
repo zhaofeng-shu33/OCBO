@@ -208,7 +208,7 @@ class SklearnGPFitter(GPFitterWrapper):
         elif self.options.kernel_type == 'rbf':
             kernel = RBF(length_scale=np.ones(len(self.x_data[0]))) # squared exponential kernel
         elif self.options.kernel_type == 'rq': # rational quadratic
-            kernel = RationalQuadratic()
+            kernel = RationalQuadratic() # does not support vectorized length_scale
         else:
             kernel = ConstantKernel(constant_value=1)
         self.gpf_core = GaussianProcessRegressor(kernel=kernel, n_restarts_optimizer=self.options.hp_samples)
