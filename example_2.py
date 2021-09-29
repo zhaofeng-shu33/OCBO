@@ -16,7 +16,7 @@ def black_box_function_1(vec):
     x, y = vec
     func_val = np.cos(2 * x) * np.cos(y) + np.sin(x)
     constraint_val = np.cos(x) * np.cos(y) - np.sin(x) * np.sin(y) + 0.5
-    return (-func_val, constraint_val)
+    return (func_val, constraint_val)
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
@@ -34,6 +34,7 @@ if __name__ == '__main__':
 
     np.random.seed(100826730)
     function = black_box_function_1 # maximization problem
+
     domain = [[0, 6], [0, 6]]
     ctx_dim = 1
     max_capital = args.train_size
@@ -65,29 +66,29 @@ if __name__ == '__main__':
 
     ctx_array = np.linspace(0, 6)
     n = ctx_array.shape[0]
-    action = np.zeros(n)
-    true_action = np.zeros(n)
+    pred_max = np.zeros(n)
+    true_max_val = np.zeros(n)
 
 
     for i in range(n):
         x = ctx_array[i]
         ctx_plus_action = model._get_ctx_improvement([x], predict=True)
         # extract the action
-        action[i] = ctx_plus_action[-1]
-        con = lambda y: np.cos(x) * np.cos(y) - np.sin(x) * np.sin(y) + 0.5
-        nlc = NonlinearConstraint(con, -np.inf, 0.0)
-        true_action[i] = minimize(lambda y: np.cos(2 * x) * np.cos(y) + np.sin(x),
-            x0=[3.0], bounds=[(0, 6.0)], constraints=nlc).x[0]
+        pred_max[i] = np.cos(2 * x) * np.cos(ctx_plus_action[-1]) + np.sin(x)
+        y_samples = np.linspace(0, 6, 500)
+        y_samples_index = np.where(np.cos(x) * np.cos(y_samples) - np.sin(x) * np.sin(y_samples) + 0.5 <= 0)
+        y_samples = y_samples[y_samples_index]
+        true_max_val[i] = np.max(np.cos(2 * x) * np.cos(y_samples) + np.sin(x))
         # use scipy to compute the ground truth
         # import pdb
         # pdb.set_trace()
     # compute the fitting error
-    L2_error = np.mean(np.power(true_action - action, 2))
+    L2_error = np.mean(np.power(true_max_val - pred_max, 2))
     print(L2_error)
-    plt.plot(ctx_array, action, label='bayesian')
-    plt.plot(ctx_array, true_action, label='true')
+    plt.plot(ctx_array, pred_max, label='bayesian')
+    plt.plot(ctx_array, true_max_val, label='true')
     plt.legend()
     plt.xlabel('x')
-    plt.ylabel('z')
+    plt.ylabel('f(z)')
     plt.savefig('build/cbo_2.png')
     plt.show()
