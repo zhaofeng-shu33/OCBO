@@ -27,8 +27,12 @@ if __name__ == '__main__':
     parser.add_argument('--xi', type=float, default=0.0)
     parser.add_argument('--kernel_type', choices=['rbf', 'matern', 'rq'], default='matern')
     parser.add_argument('--n_restarts_optimizer', type=int, default=1)
-    parser.add_argument('--matern_nu', type=float, default=0.5)
+    parser.add_argument('--matern_nu', type=float, default=1.5)
     parser.add_argument('--opt_sampling', default=False, const=True, nargs='?')
+    parser.add_argument('--profile_evals', type=int, default=200)
+    parser.add_argument('--num_profiles', type=int, default=100)
+    parser.add_argument('--gp_engine', choices=['dragonfly', 'sklearn'], default='dragonfly')
+
     args = parser.parse_args()
 
 
@@ -43,13 +47,13 @@ if __name__ == '__main__':
     options = load_options(copts)
     options.opt_sampling = args.opt_sampling
     if options.opt_sampling:
-        options.profile_evals = 200
-        options.num_profiles = 100
+        options.profile_evals = args.profile_evals
+        options.num_profiles = args.num_profiles
     else:
         options.profile_evals = 20
         options.num_profiles = 10        
     options.xi = args.xi
-    options.gp_engine = 'sklearn'
+    options.gp_engine = args.gp_engine
     options.kernel_type = args.kernel_type
     options.matern_nu = args.matern_nu
     options.hp_samples = args.n_restarts_optimizer
@@ -88,7 +92,7 @@ if __name__ == '__main__':
     plt.plot(ctx_array, pred_max, label='bayesian')
     plt.plot(ctx_array, true_max_val, label='true')
     plt.legend()
-    plt.xlabel('x')
-    plt.ylabel('f(z)')
+    plt.xlabel('x', fontsize=16)
+    plt.ylabel('$\\max_a f(x, a)$', fontsize=16, rotation=0)
     plt.savefig('build/cbo_2.png')
     plt.show()
