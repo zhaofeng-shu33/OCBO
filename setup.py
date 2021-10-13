@@ -3,7 +3,7 @@ with open("README.md") as fh:
     long_description = fh.read()
 setup(
     name='OCBO',
-    version='0.1.0',
+    version='0.1.1',
     packages=find_packages(include=['OCBO', 'OCBO.*']),
     url = 'https://github.com/zhaofeng-shu33/OCBO',
     author = 'zhaofeng-shu33',
