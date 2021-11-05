@@ -9,7 +9,8 @@ setup(
     author = 'zhaofeng-shu33',
     author_email = '616545598@qq.com',
     long_description = long_description,
-    long_description_content_type="text/markdown",           
+    long_description_content_type="text/markdown",
+    install_requires=['dragonfly'],
     license = 'MIT License',
     description = 'Offline Contextual Bayesian Optimization'    
 )
