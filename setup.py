@@ -10,7 +10,7 @@ setup(
     author_email = '616545598@qq.com',
     long_description = long_description,
     long_description_content_type="text/markdown",
-    install_requires=['dragonfly', 'scikit-learn'],
+    install_requires=['dragonfly-opt', 'scikit-learn'],
     license = 'MIT License',
     description = 'Offline Contextual Bayesian Optimization'    
 )
