@@ -28,6 +28,7 @@ jobs:
       run: |
         python -m pip install --upgrade pip
         pip install build
+        pip install numpy
     - name: install package
       run: python setup.py install
     - name: Run example
