@@ -2,7 +2,7 @@ import argparse
 import numpy as np
 from scipy.optimize import minimize
 
-import matplotlib.pyplot as plt
+
 
 from OCBO.cstrats.profile_cts import ContinuousMultiTaskTS, CMTSPM, ProfileEI
 from OCBO.cstrats import copts
@@ -43,7 +43,7 @@ if __name__ == '__main__':
     # switch off the hyper-parameter tuning of GP
     histories = model.optimize(max_capital, init_pts=init_pts, pre_tune=True)
     pt_list = [i.pt[0] for i in histories.query_history]
-    plt.hist(pt_list, bins=20)
+    
     # print(histories)
     # plot histogram of sampled target (collect the target data first)
     # plotting the result
@@ -62,11 +62,18 @@ if __name__ == '__main__':
         # pdb.set_trace()
     L2_error = np.mean(np.power(true_action - action, 2))
     print(L2_error)
-    plt.figure(2)
-    plt.plot(ctx_array, action, label='bayesian', linewidth=4)
-    plt.plot(ctx_array, true_action, label='true', linewidth=2)
-    plt.legend()
-    plt.xlabel('x')
-    plt.ylabel('z')
-    plt.savefig('build/cbo_1.png')
-    plt.show()
+    has_matplotlib = True
+    try:
+        import matplotlib.pyplot as plt
+    except:
+        has_matplotlib = False
+    if has_matplotlib:
+        plt.hist(pt_list, bins=20)
+        plt.figure(2)
+        plt.plot(ctx_array, action, label='bayesian', linewidth=4)
+        plt.plot(ctx_array, true_action, label='true', linewidth=2)
+        plt.legend()
+        plt.xlabel('x')
+        plt.ylabel('z')
+        plt.savefig('build/cbo_1.png')
+        plt.show()
